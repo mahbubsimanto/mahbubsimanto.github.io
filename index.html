@@ -606,8 +606,11 @@ footer { padding: 70px 40px 40px; text-align: center; }
 /* ---------- Cal modal ---------- */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(8px); }
 .modal-overlay.open { opacity: 1; pointer-events: all; }
+html.modal-open, html.modal-open body { overflow: hidden; }
+.modal-overlay { overscroll-behavior: contain; }
 .modal { background: var(--s1); border: 1px solid var(--line2); border-radius: 20px; max-width: 900px; width: 100%; overflow: hidden; position: relative; }
-.modal iframe { width: 100%; height: 700px; border: 0; display: block; background: var(--s1); }
+.modal::before { content: 'Loading calendar…'; position: absolute; top: 50%; left: 0; right: 0; text-align: center; font: 400 12px var(--mono); color: var(--mute); text-transform: uppercase; letter-spacing: 0.1em; }
+.modal iframe { position: relative; width: 100%; height: 700px; border: 0; display: block; background: transparent; }
 .modal-close { position: absolute; top: 12px; right: 12px; z-index: 10; width: 38px; height: 38px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid var(--line2); font-size: 20px; cursor: pointer; }
 
 /* ---------- 3D tilt cards (classes added by script) ---------- */
@@ -615,8 +618,9 @@ footer { padding: 70px 40px 40px; text-align: center; }
   position: relative;
   transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--ty, 0px));
   transition: transform 0.18s ease-out, border-color 0.3s, box-shadow 0.3s;
-  will-change: transform;
 }
+.tilt:hover { will-change: transform; }
+.tilt.tilt-enter { transition: transform 0.9s cubic-bezier(.2,.7,.2,1), border-color 0.3s, box-shadow 0.3s; }
 .tilt.tilt-rest { transition: transform 0.6s cubic-bezier(.2,.7,.2,1), border-color 0.3s, box-shadow 0.3s; }
 .tilt::after {
   content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
@@ -638,6 +642,7 @@ footer { padding: 70px 40px 40px; text-align: center; }
   mask-image: radial-gradient(240px circle at var(--sx, 50%) var(--sy, 50%), #000, transparent 75%);
 }
 .spotlight.on { opacity: 1; }
+@media (hover: none) { .spotlight { display: none; } }
 
 /* ---------- Reveal ---------- */
 .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s cubic-bezier(.2,.7,.2,1), transform 0.8s cubic-bezier(.2,.7,.2,1); }
@@ -1300,13 +1305,15 @@ const vimeo = (id, extra = '', lazy = true) =>
   `<iframe src="https://player.vimeo.com/video/${esc(id)}?badge=0&autopause=0&title=0&byline=0&portrait=0${extra}" ${lazy ? 'loading="lazy"' : ''} allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Video edited by Mahbub Simanto"></iframe>`;
 const initials = name => String(name).split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
 const saveData = !!(navigator.connection && navigator.connection.saveData) || matchMedia('(prefers-reduced-motion: reduce)').matches;
-// A video from the videos folder (autoplays muted when on screen) or a Vimeo embed
+const isTouch = !matchMedia('(hover: hover) and (pointer: fine)').matches;
+// A video from the videos folder (autoplays muted when on screen) or a Vimeo embed.
+// Non-hero videos get their source only when they come near the screen (see the video manager).
 function media(src, { hero = false } = {}) {
   if (!/\.mp4$/i.test(src)) return vimeo(src, hero ? '&autoplay=1&muted=1&loop=1' : '', !hero);
   const poster = esc(src.replace(/\.mp4$/i, '.jpg'));
-  const play = saveData ? 'controls preload="none"' : (hero ? 'autoplay preload="auto"' : 'preload="none" data-autoplay');
-  return `<video src="${esc(src)}" poster="${poster}" muted loop playsinline ${play}></video>` +
-    (saveData ? '' : '<button class="snd" type="button" aria-label="Turn sound on">🔇</button>');
+  if (saveData) return `<video src="${esc(src)}" poster="${poster}" muted loop playsinline controls preload="none"></video>`;
+  return `<video ${hero ? `src="${esc(src)}" autoplay preload="auto"` : 'preload="none"'} data-src="${esc(src)}" poster="${poster}" muted loop playsinline data-autoplay></video>` +
+    '<button class="snd" type="button" aria-label="Turn sound on">🔇</button>';
 }
 
 // ---------- Content from SITE ----------
@@ -1362,32 +1369,68 @@ document.querySelectorAll('section:not([hidden]) .slate .n').forEach(n => {
   if (n.textContent.trim() !== '●') n.textContent = String(++slateNum).padStart(2, '0');
 });
 
-// Self-hosted videos: play muted while on screen, pause when scrolled away
-const videoObs = new IntersectionObserver(entries => {
-  entries.forEach(({ target: v, isIntersecting }) => {
-    if (isIntersecting) v.play().catch(() => {});
-    else v.pause();
-  });
-}, { threshold: 0.5 });
-document.querySelectorAll('video[data-autoplay]').forEach(v => videoObs.observe(v));
+// ---------- Video manager ----------
+// Phones can only decode a couple of videos at once, so only the most visible ones play,
+// and videos far off screen drop their buffers to free memory.
+const MAX_PLAYING = isTouch ? 2 : 6;
+const managed = [...document.querySelectorAll('video[data-autoplay]')];
+const visibility = new Map();
+let soundVideo = null;
 
-// Sound toggle: one video with sound at a time
+const attach = v => { if (!v.getAttribute('src')) v.src = v.dataset.src; };
+function release(v) {
+  if (!v.getAttribute('src')) return;
+  if (v === soundVideo) setSound(null);
+  v.pause();
+  v.removeAttribute('src');
+  v.load();
+}
+function schedule() {
+  const onScreen = managed.filter(v => (visibility.get(v) || 0) >= 0.5)
+    .sort((a, b) => visibility.get(b) - visibility.get(a));
+  const allowed = soundVideo && onScreen.includes(soundVideo) ? [soundVideo] : onScreen.slice(0, MAX_PLAYING);
+  for (const v of managed) {
+    if (allowed.includes(v)) { attach(v); v.play().catch(() => {}); }
+    else if (!v.paused) v.pause();
+  }
+}
+const nearObs = new IntersectionObserver(entries => {
+  entries.forEach(({ target: v, isIntersecting }) => { if (!isIntersecting) release(v); });
+}, { rootMargin: '600px 0px' });
+const visObs = new IntersectionObserver(entries => {
+  entries.forEach(({ target: v, intersectionRatio }) => visibility.set(v, intersectionRatio));
+  schedule();
+}, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+managed.forEach(v => { nearObs.observe(v); visObs.observe(v); });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) managed.forEach(v => v.pause());
+  else schedule();
+});
+
+// Sound toggle: one video with sound at a time, and the others pause while it plays
+function setSound(v) {
+  if (soundVideo) {
+    soundVideo.muted = true;
+    const b = soundVideo.nextElementSibling;
+    b.classList.remove('on'); b.textContent = '🔇'; b.setAttribute('aria-label', 'Turn sound on');
+  }
+  soundVideo = v;
+  if (v) {
+    v.muted = false;
+    const b = v.nextElementSibling;
+    b.classList.add('on'); b.textContent = '🔊'; b.setAttribute('aria-label', 'Turn sound off');
+  }
+}
 document.addEventListener('click', e => {
   const btn = e.target.closest('.snd');
   if (!btn) return;
   const v = btn.previousElementSibling;
-  const turnOn = v.muted;
-  document.querySelectorAll('.snd.on').forEach(b => {
-    b.classList.remove('on'); b.textContent = '🔇'; b.setAttribute('aria-label', 'Turn sound on');
-    b.previousElementSibling.muted = true;
-  });
-  if (turnOn) {
-    v.muted = false;
-    if (v.currentTime > 0.5 && !v.dataset.restarted) { v.currentTime = 0; v.dataset.restarted = '1'; }
-    v.play().catch(() => {});
-    btn.classList.add('on'); btn.textContent = '🔊'; btn.setAttribute('aria-label', 'Turn sound off');
-    track('video_sound_on');
-  }
+  if (v === soundVideo) { setSound(null); schedule(); return; }
+  attach(v);
+  setSound(v);
+  if (v.currentTime > 0.5 && !v.dataset.restarted) { v.currentTime = 0; v.dataset.restarted = '1'; }
+  schedule();
+  track('video_sound_on');
 });
 
 if (SITE.whatsapp) {
@@ -1435,20 +1478,30 @@ function updateCalc() {
 }));
 updateCalc();
 
-// ---------- Cal booking modal (iframe loads on first open) ----------
+// ---------- Booking ----------
+// Phones open Cal.com in a new tab (an embedded calendar there can trap scrolling);
+// larger screens get the in-page popup, which the back button also closes.
 const calModal = $('calModal'), calFrame = $('calFrame');
+const useCalTab = isTouch || innerWidth < 760;
+const lockScroll = on => document.documentElement.classList.toggle('modal-open', on);
 function openCal() {
+  track('booking_open', 'InitiateCheckout');
+  if (useCalTab) { window.open(SITE.calLink, '_blank', 'noopener'); return; }
   if (!calFrame.src) calFrame.src = SITE.calLink + '?embed=true&theme=dark';
   calModal.classList.add('open');
   calModal.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-  track('booking_open', 'InitiateCheckout');
+  lockScroll(true);
+  history.pushState({ cal: true }, '');
 }
-function closeCal() {
+function closeCal(fromHistory) {
+  if (!calModal.classList.contains('open')) return;
   calModal.classList.remove('open');
   calModal.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
+  lockScroll(false);
+  if (fromHistory !== true && history.state && history.state.cal) history.back();
 }
+addEventListener('popstate', () => closeCal(true));
+addEventListener('pageshow', () => { if (!calModal.classList.contains('open')) lockScroll(false); });
 document.querySelectorAll('[data-cal]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); openCal(); }));
 $('calClose').addEventListener('click', closeCal);
 calModal.addEventListener('click', e => { if (e.target === calModal) closeCal(); });
@@ -1517,7 +1570,8 @@ document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
   const canvas = $('embers'), heroEl = $('hero');
   if (!canvas || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const ctx = canvas.getContext('2d');
-  const DPR = Math.min(devicePixelRatio || 1, 2);
+  // Soft glows don't need retina sharpness; drawing at 1x keeps phones light
+  const DPR = isTouch ? 1 : Math.min(devicePixelRatio || 1, 2);
   const mouse = { x: -9999, y: -9999 };
   let W = 0, H = 0, lastWidth = 0, embers = [], running = false, visible = true;
 
@@ -1555,7 +1609,7 @@ document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
     // Only reseed when the width really changes (not when a phone's address bar hides)
     if (Math.abs(heroEl.clientWidth - lastWidth) > 40) {
       lastWidth = heroEl.clientWidth;
-      const count = Math.round(Math.min(150, Math.max(60, lastWidth / 9)));
+      const count = isTouch ? 45 : Math.round(Math.min(150, Math.max(60, lastWidth / 9)));
       embers = Array.from({ length: count }, () => spawn({}, true));
     }
   }
@@ -1563,6 +1617,8 @@ document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
   let last = 0;
   function frame(now) {
     if (!running) return;
+    // Phones: cap at ~60fps (120Hz screens would otherwise draw twice as often)
+    if (isTouch && last && now - last < 15) { requestAnimationFrame(frame); return; }
     // Scale motion by elapsed time so 60Hz and 144Hz screens move at the same speed
     const k = last ? Math.min((now - last) / 16.67, 3) : 1;
     last = now;
@@ -1607,12 +1663,14 @@ document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
     else if (!should) running = false;
   }
 
-  addEventListener('pointermove', e => {
-    const r = canvas.getBoundingClientRect();
-    mouse.x = (e.clientX - r.left) * DPR;
-    mouse.y = (e.clientY - r.top) * DPR;
-  }, { passive: true });
-  heroEl.addEventListener('pointerleave', () => { mouse.x = mouse.y = -9999; });
+  if (!isTouch) {
+    addEventListener('pointermove', e => {
+      const r = canvas.getBoundingClientRect();
+      mouse.x = (e.clientX - r.left) * DPR;
+      mouse.y = (e.clientY - r.top) * DPR;
+    }, { passive: true });
+    heroEl.addEventListener('pointerleave', () => { mouse.x = mouse.y = -9999; });
+  }
   new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; setRunning(); }).observe(heroEl);
   document.addEventListener('visibilitychange', setRunning);
   let resizeTimer;
@@ -1674,31 +1732,18 @@ document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
       magnets.forEach(b => (b.style.translate = ''));
     });
   } else {
-    // Touch screens: cards settle flat as they scroll into the middle of the screen,
-    // and the spotlight follows the finger while it's on the glass
-    let queued = false;
-    const settle = () => {
-      queued = false;
-      for (const c of cards) {
-        const r = c.getBoundingClientRect();
-        if (r.bottom < 0 || r.top > innerHeight) continue;
-        const offset = (r.top + r.height / 2) / innerHeight - 0.5;
-        c.style.setProperty('--rx', (Math.max(-1, Math.min(1, offset * 2)) * -7).toFixed(2) + 'deg');
-      }
-    };
-    addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(settle); } }, { passive: true });
-    settle();
-    addEventListener('pointerdown', e => {
-      spot.style.setProperty('--sx', e.clientX + 'px');
-      spot.style.setProperty('--sy', e.clientY + 'px');
-      spot.classList.add('on');
-    }, { passive: true });
-    addEventListener('pointermove', e => {
-      spot.style.setProperty('--sx', e.clientX + 'px');
-      spot.style.setProperty('--sy', e.clientY + 'px');
-    }, { passive: true });
-    addEventListener('pointerup', () => spot.classList.remove('on'), { passive: true });
-    addEventListener('pointercancel', () => spot.classList.remove('on'), { passive: true });
+    // Touch screens: each card tips back once and settles flat as it first scrolls into view.
+    // One short animation per card, so scrolling itself stays light.
+    cards.forEach(c => c.style.setProperty('--rx', '10deg'));
+    const enterObs = new IntersectionObserver(entries => {
+      entries.forEach(({ target: c, isIntersecting }) => {
+        if (!isIntersecting) return;
+        c.classList.add('tilt-enter');
+        c.style.setProperty('--rx', '0deg');
+        enterObs.unobserve(c);
+      });
+    }, { threshold: 0.2 });
+    cards.forEach(c => enterObs.observe(c));
   }
 })();
 
