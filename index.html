@@ -99,8 +99,17 @@ const SITE = {
   // The reel that autoplays in the hero phone.
   heroReel: 'videos/reel-3.mp4',
 
-  // Portfolio reels, in order.
-  reels: ['videos/reel-1.mp4', 'videos/reel-2.mp4', 'videos/reel-4.mp4', 'videos/client-2.mp4', 'videos/client-1.mp4'],
+  // Portfolio reels, in order. Use { src, client } to show a client name on the video.
+  reels: [
+    { src: 'videos/zaved-1.mp4', client: 'Zaved Mannan' },
+    'videos/client-2.mp4',
+    'videos/reel-1.mp4',
+    'videos/reel-2.mp4',
+    'videos/reel-4.mp4',
+    { src: 'videos/zaved-2.mp4', client: 'Zaved Mannan' },
+    { src: 'videos/zaved-3.mp4', client: 'Zaved Mannan' },
+    'videos/client-1.mp4',
+  ],
 
   // Before / after videos (each one already shows the raw clip next to the edit).
   beforeAfter: ['videos/before-after-1.mp4', 'videos/before-after-2.mp4', 'videos/before-after-3.mp4'],
@@ -334,6 +343,13 @@ section { position: relative; padding: 120px 40px; }
 .snd:hover { background: var(--org); transform: scale(1.06); }
 .snd.on { background: var(--org); border-color: var(--org); }
 .phone .snd { right: 14px; bottom: 16px; }
+.reel-tag {
+  position: absolute; left: 10px; top: 10px; z-index: 3; max-width: calc(100% - 20px);
+  padding: 6px 10px; border-radius: 100px; background: rgba(7,7,7,0.72); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.18); font: 500 10.5px var(--mono); letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left;
+}
+.reel-tag b { color: var(--org2); font-weight: 500; }
 .reel-more {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; padding: 28px; text-decoration: none;
   background: radial-gradient(circle at 50% 35%, rgba(255,77,0,0.25), transparent 60%), var(--s1);
@@ -444,9 +460,6 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 
 /* ---------- Reviews ---------- */
 .vt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 260px)); justify-content: center; gap: 16px; margin-top: 56px; }
-.testi-grid { columns: 3; column-gap: 18px; margin-top: 56px; text-align: left; }
-.testi { break-inside: avoid; background: var(--s1); border: 1px solid var(--line); border-radius: 20px; padding: 28px; margin-bottom: 18px; }
-.testi p { font-size: 18px; color: var(--ink); line-height: 1.5; margin: 14px 0 22px; letter-spacing: -0.01em; }
 .testi-meta { display: flex; align-items: center; gap: 11px; }
 .testi-av { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--org), #ff9966); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
 .testi-name { font-size: 15px; font-weight: 700; line-height: 1.2; }
@@ -461,6 +474,9 @@ img.testi-av { object-fit: cover; }
 .featured .k { font: 500 12px var(--mono); color: var(--org); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
 .featured blockquote { font-family: var(--serif); font-size: clamp(26px, 2.6vw, 36px); line-height: 1.2; color: var(--ink); margin: 14px 0 28px; letter-spacing: -0.01em; }
 .featured blockquote b { font-weight: 400; color: var(--org); }
+.featured + .featured { margin-top: 22px; }
+.featured.flip { grid-template-columns: 1fr 360px; }
+.featured.flip .featured-card { order: 2; }
 
 /* ---------- Pricing ---------- */
 .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 70px; align-items: stretch; text-align: left; }
@@ -604,7 +620,6 @@ footer { padding: 70px 40px 40px; text-align: center; }
   .about-grid { grid-template-columns: 340px 1fr; gap: 44px; }
   .final { grid-template-columns: 1fr; padding: 52px; }
   .calc { grid-template-columns: 1fr; }
-  .testi-grid { columns: 2; }
 }
 @media (max-width: 900px) {
   body { font-size: 16px; }
@@ -639,7 +654,8 @@ footer { padding: 70px 40px 40px; text-align: center; }
   .compare { overflow-x: auto; }
   .compare table { min-width: 600px; font-size: 14.5px; }
   .compare th, .compare td { padding: 14px; }
-  .testi-grid { columns: 1; }
+  .featured.flip { grid-template-columns: 1fr; }
+  .featured.flip .featured-card { order: 0; }
   .price, .fit, .step, .stack-card, .thought { padding: 28px 22px; }
   .price.pop { transform: none; order: -1; }
   .custom { padding: 26px 22px; }
@@ -710,13 +726,13 @@ footer { padding: 70px 40px 40px; text-align: center; }
       </div>
       <div class="micro"><span>No commitment</span><span>48h delivery</span><span>Revisions included</span></div>
       <div class="proof">
-        <div class="faces"><img src="images/emran.jpg" alt="Emran Tahir"><span>JM</span><span>RM</span><span>TP</span></div>
+        <div class="faces"><img src="images/emran.jpg" alt="Emran Tahir"><img src="images/zaved.jpg" alt="Zaved Mannan"></div>
         <div>
           <div class="stars">★★★★★</div>
           <div class="proof-t"><b>20+ happy clients</b> · 50+ videos delivered</div>
         </div>
       </div>
-      <p class="hero-quote"><span>…delivers top notch quality and never misses a deadline. <cite>— Emran Tahir, client</cite></span></p>
+      <p class="hero-quote"><span>…delivers top notch quality and never misses a deadline. <cite>— Emran Tahir, agency owner</cite></span></p>
     </div>
 
     <div class="stage">
@@ -960,19 +976,23 @@ footer { padding: 70px 40px 40px; text-align: center; }
         <blockquote>“Finding an editor who delivers top notch quality and <b>never misses a deadline</b> is rare. Mahbub is a literal powerhouse when it comes to visual storytelling and motion graphics. Absolute respect bro.”</blockquote>
         <div class="testi-meta">
           <img class="testi-av" src="images/emran.jpg" alt="Emran Tahir" loading="lazy">
-          <div><div class="testi-name">Emran Tahir</div><div class="testi-src">Client</div></div>
+          <div><div class="testi-name">Emran Tahir</div><div class="testi-src">Agency owner</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="featured flip">
+      <img class="featured-card" src="images/feedback-zaved.jpg" alt="Client feedback card from Zaved Mannan" loading="lazy">
+      <div>
+        <div class="k">Client feedback · via Instagram</div>
+        <div class="stars">★★★★★</div>
+        <blockquote>“Thanks for your kind assistance. <b>Look forward to your help in future.</b>”</blockquote>
+        <div class="testi-meta">
+          <img class="testi-av" src="images/zaved.jpg" alt="Zaved Mannan" loading="lazy">
+          <div><div class="testi-name">Zaved Mannan</div><div class="testi-src">Business coach · Purple Business Academy</div></div>
         </div>
       </div>
     </div>
     <div class="vt-grid" id="vtGrid" hidden></div>
-    <div class="testi-grid">
-      <div class="testi"><div class="stars">★★★★★</div><p>"Your editing is outstanding. Everything was clean, clear, and professional — truly impressive work."</p><div class="testi-meta"><div class="testi-av">JC</div><div><div class="testi-name">James Carter</div><div class="testi-src">via Facebook</div></div></div></div>
-      <div class="testi"><div class="stars">★★★★★</div><p>"The editing was so smooth and engaging I didn't realize how quickly the video ended. Mad respect."</p><div class="testi-meta"><div class="testi-av">JM</div><div><div class="testi-name">Jannatul Maowa</div><div class="testi-src">via Facebook</div></div></div></div>
-      <div class="testi"><div class="stars">★★★★★</div><p>"Really crazy editing. You get hooked to the video and keep watching till the end. Keep it up."</p><div class="testi-meta"><div class="testi-av">RM</div><div><div class="testi-name">Ryan Mitchell</div><div class="testi-src">via YouTube</div></div></div></div>
-      <div class="testi"><div class="stars">★★★★★</div><p>"Storytelling skills are truly inspiring."</p><div class="testi-meta"><div class="testi-av">ST</div><div><div class="testi-name">Sarah Thompson</div><div class="testi-src">via YouTube</div></div></div></div>
-      <div class="testi"><div class="stars">★★★★★</div><p>"Clean edit with proper visuals, accent, sound design — still needs improvement in a bit but overall outstanding."</p><div class="testi-meta"><div class="testi-av">TP</div><div><div class="testi-name">Tanjir Pallab</div><div class="testi-src">via Facebook</div></div></div></div>
-      <div class="testi"><div class="stars">★★★★★</div><p>"Does amazing work. A bright future ahead. Lots of love and best wishes — becoming a big fan!"</p><div class="testi-meta"><div class="testi-av">AR</div><div><div class="testi-name">Alex Rivera</div><div class="testi-src">via Facebook</div></div></div></div>
-    </div>
   </div>
 </section>
 
@@ -1254,9 +1274,11 @@ if (SITE.offer) {
   document.querySelectorAll('[data-offer-wrap]').forEach(el => el.hidden = false);
 }
 
-const heroSrc = SITE.heroReel || SITE.reels[0];
+const reelItems = SITE.reels.map(r => typeof r === 'string' ? { src: r } : r);
+const heroSrc = SITE.heroReel || (reelItems[0] && reelItems[0].src);
 if (heroSrc) $('heroPhone').innerHTML = media(heroSrc, { hero: true });
-$('workGrid').insertAdjacentHTML('afterbegin', SITE.reels.map(src => `<div class="reel">${media(src)}</div>`).join(''));
+$('workGrid').insertAdjacentHTML('afterbegin', reelItems.map(r =>
+  `<div class="reel">${media(r.src)}${r.client ? `<div class="reel-tag"><b>Client</b> · ${esc(r.client)}</div>` : ''}</div>`).join(''));
 
 if (SITE.clients.length) {
   $('logoRow').innerHTML = SITE.clients
