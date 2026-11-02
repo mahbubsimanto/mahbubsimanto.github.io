@@ -174,7 +174,7 @@ em.s, .s-em { font-family: var(--serif); font-style: italic; font-weight: 400; c
   padding: 17px 30px; border-radius: 100px;
   font: 600 16px/1.2 var(--sans); letter-spacing: -0.01em;
   text-decoration: none; cursor: pointer; border: 1px solid transparent; white-space: nowrap;
-  transition: background 0.2s, transform 0.2s, box-shadow 0.2s, border-color 0.2s, filter 0.2s;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s, border-color 0.2s, filter 0.2s, translate 0.25s ease-out;
 }
 .btn-primary { background: var(--org); color: #fff; box-shadow: 0 10px 30px rgba(255,77,0,0.3), inset 0 1px 0 rgba(255,255,255,0.25); }
 .btn-primary:hover { background: var(--org2); transform: translateY(-2px); box-shadow: 0 16px 40px rgba(255,77,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25); }
@@ -412,7 +412,7 @@ section { position: relative; padding: 120px 40px; }
 
 .stack { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 24px; }
 .stack-card { background: var(--s1); border: 1px solid var(--line); border-radius: 20px; padding: 30px; transition: border-color 0.25s, transform 0.25s; }
-.stack-card:hover { border-color: rgba(255,77,0,0.4); transform: translateY(-4px); }
+.stack-card:hover { border-color: rgba(255,77,0,0.4); --ty: -4px; }
 .stack-card .k { font: 500 12px var(--mono); color: var(--org); letter-spacing: 0.1em; }
 .stack-card h3 { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; margin: 12px 0 8px; }
 .stack-card p { font-size: 15.5px; color: var(--mute); line-height: 1.6; }
@@ -482,7 +482,7 @@ img.testi-av { object-fit: cover; }
 /* ---------- Pricing ---------- */
 .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 70px; align-items: stretch; text-align: left; }
 .price { background: var(--s1); border: 1px solid var(--line); border-radius: 24px; padding: 36px; position: relative; display: flex; flex-direction: column; transition: border-color 0.3s, box-shadow 0.3s; }
-.price.pop { border-color: var(--org); background: linear-gradient(170deg, rgba(255,77,0,0.13) 0%, var(--s1) 50%); box-shadow: 0 0 0 1px var(--org), 0 40px 80px rgba(255,77,0,0.18); transform: translateY(-12px); }
+.price.pop { border-color: var(--org); background: linear-gradient(170deg, rgba(255,77,0,0.13) 0%, var(--s1) 50%); box-shadow: 0 0 0 1px var(--org), 0 40px 80px rgba(255,77,0,0.18); --ty: -12px; transform: translateY(var(--ty)); }
 .price.match { box-shadow: 0 0 0 2px var(--green), 0 30px 70px rgba(61,220,151,0.15); border-color: var(--green); }
 .badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font: 500 11px var(--mono); padding: 6px 14px; border-radius: 100px; letter-spacing: 0.08em; white-space: nowrap; text-transform: uppercase; }
 .badge-pop { background: var(--org); color: #fff; }
@@ -610,6 +610,35 @@ footer { padding: 70px 40px 40px; text-align: center; }
 .modal iframe { width: 100%; height: 700px; border: 0; display: block; background: var(--s1); }
 .modal-close { position: absolute; top: 12px; right: 12px; z-index: 10; width: 38px; height: 38px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid var(--line2); font-size: 20px; cursor: pointer; }
 
+/* ---------- 3D tilt cards (classes added by script) ---------- */
+.tilt, .price.pop.tilt {
+  position: relative;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--ty, 0px));
+  transition: transform 0.18s ease-out, border-color 0.3s, box-shadow 0.3s;
+  will-change: transform;
+}
+.tilt.tilt-rest { transition: transform 0.6s cubic-bezier(.2,.7,.2,1), border-color 0.3s, box-shadow 0.3s; }
+.tilt::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255,255,255,0.11), rgba(255,140,60,0.05) 30%, transparent 55%);
+  opacity: 0; transition: opacity 0.35s;
+}
+.tilt:hover::after { opacity: 1; }
+
+/* ---------- Cursor spotlight ---------- */
+.spotlight {
+  position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: 0; transition: opacity 0.5s;
+  background: radial-gradient(520px circle at var(--sx, 50%) var(--sy, 50%), rgba(255,77,0,0.075), transparent 60%);
+}
+.spotlight::after {
+  content: ''; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(240px circle at var(--sx, 50%) var(--sy, 50%), #000, transparent 75%);
+  mask-image: radial-gradient(240px circle at var(--sx, 50%) var(--sy, 50%), #000, transparent 75%);
+}
+.spotlight.on { opacity: 1; }
+
 /* ---------- Reveal ---------- */
 .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s cubic-bezier(.2,.7,.2,1), transform 0.8s cubic-bezier(.2,.7,.2,1); }
 .reveal.visible { opacity: 1; transform: none; }
@@ -669,7 +698,7 @@ footer { padding: 70px 40px 40px; text-align: center; }
   .featured.flip { grid-template-columns: 1fr; }
   .featured.flip .featured-card { order: 0; }
   .price, .fit, .step, .stack-card, .thought { padding: 28px 22px; }
-  .price.pop { transform: none; order: -1; }
+  .price.pop { --ty: 0px; order: -1; }
   .about-grid { grid-template-columns: 1fr; }
   .about-photo { max-width: 380px; }
   .faq-a { padding-right: 0; }
@@ -717,6 +746,7 @@ footer { padding: 70px 40px 40px; text-align: center; }
   </div>
   <div class="ph" aria-hidden="true"><div class="ph-fill" id="phFill"></div></div>
 </nav>
+<div class="spotlight" id="spotlight" aria-hidden="true"></div>
 
 <!-- HERO -->
 <section id="hero">
@@ -1589,6 +1619,87 @@ document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
   addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(resize, 150); });
   resize();
   setRunning();
+})();
+
+// ---------- 3D tilt cards, cursor spotlight and magnetic buttons ----------
+(() => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const cards = [...document.querySelectorAll('.price, .stack-card, .thought, .step, .featured')];
+  cards.forEach(c => c.classList.add('tilt'));
+  const spot = $('spotlight');
+
+  if (finePointer) {
+    // Tilt toward the cursor; wide cards tilt less so they never feel wobbly
+    cards.forEach(card => {
+      card.addEventListener('pointermove', e => {
+        const r = card.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+        const max = Math.min(9, 2400 / r.width);
+        card.classList.remove('tilt-rest');
+        card.style.setProperty('--ry', ((px - 0.5) * 2 * max).toFixed(2) + 'deg');
+        card.style.setProperty('--rx', ((0.5 - py) * 2 * max).toFixed(2) + 'deg');
+        card.style.setProperty('--gx', (px * 100).toFixed(1) + '%');
+        card.style.setProperty('--gy', (py * 100).toFixed(1) + '%');
+      });
+      card.addEventListener('pointerleave', () => {
+        card.classList.add('tilt-rest');
+        card.style.setProperty('--rx', '0deg');
+        card.style.setProperty('--ry', '0deg');
+      });
+    });
+
+    // Buttons drift toward a nearby cursor (full-width buttons stay put)
+    const magnets = [...document.querySelectorAll('.btn:not(.btn-block)')].filter(b => !b.closest('.sticky-cta'));
+    let mx = -9999, my = -9999, queued = false;
+    const pull = () => {
+      queued = false;
+      spot.style.setProperty('--sx', mx + 'px');
+      spot.style.setProperty('--sy', my + 'px');
+      for (const b of magnets) {
+        const r = b.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > innerHeight) continue;
+        const dx = mx - (r.left + r.width / 2), dy = my - (r.top + r.height / 2);
+        const reach = Math.max(r.width, r.height) * 0.75 + 30;
+        b.style.translate = Math.hypot(dx, dy) < reach ? `${(dx * 0.22).toFixed(1)}px ${(dy * 0.3).toFixed(1)}px` : '';
+      }
+    };
+    addEventListener('pointermove', e => {
+      mx = e.clientX; my = e.clientY;
+      spot.classList.add('on');
+      if (!queued) { queued = true; requestAnimationFrame(pull); }
+    }, { passive: true });
+    document.documentElement.addEventListener('pointerleave', () => {
+      spot.classList.remove('on');
+      magnets.forEach(b => (b.style.translate = ''));
+    });
+  } else {
+    // Touch screens: cards settle flat as they scroll into the middle of the screen,
+    // and the spotlight follows the finger while it's on the glass
+    let queued = false;
+    const settle = () => {
+      queued = false;
+      for (const c of cards) {
+        const r = c.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > innerHeight) continue;
+        const offset = (r.top + r.height / 2) / innerHeight - 0.5;
+        c.style.setProperty('--rx', (Math.max(-1, Math.min(1, offset * 2)) * -7).toFixed(2) + 'deg');
+      }
+    };
+    addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(settle); } }, { passive: true });
+    settle();
+    addEventListener('pointerdown', e => {
+      spot.style.setProperty('--sx', e.clientX + 'px');
+      spot.style.setProperty('--sy', e.clientY + 'px');
+      spot.classList.add('on');
+    }, { passive: true });
+    addEventListener('pointermove', e => {
+      spot.style.setProperty('--sx', e.clientX + 'px');
+      spot.style.setProperty('--sy', e.clientY + 'px');
+    }, { passive: true });
+    addEventListener('pointerup', () => spot.classList.remove('on'), { passive: true });
+    addEventListener('pointercancel', () => spot.classList.remove('on'), { passive: true });
+  }
 })();
 
 // ---------- Playhead, timecode and mobile sticky CTA ----------
