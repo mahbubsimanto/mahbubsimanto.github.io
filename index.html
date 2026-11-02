@@ -493,18 +493,30 @@ img.testi-av { object-fit: cover; }
 .price-n { font-size: 58px; font-weight: 700; letter-spacing: -0.05em; line-height: 1; }
 .price-n span { font-size: 16px; font-weight: 500; color: var(--mute); letter-spacing: 0; margin-left: 4px; }
 .price hr { border: 0; border-top: 1px solid var(--line); margin: 28px 0; }
-.price ul { list-style: none; margin-bottom: 32px; flex: 1; }
+.price-body { flex: 1; margin-bottom: 32px; }
+.price ul { list-style: none; }
 .price li { position: relative; padding-left: 26px; font-size: 15.5px; color: var(--ink2); margin-bottom: 13px; line-height: 1.45; }
 .price li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 800; }
 .price li b { color: var(--ink); }
+.bonus { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
+.bonus-k { font: 500 11px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--org2); margin-bottom: 14px; }
+.bonus li { font-size: 14.5px; }
+.bonus li::before { content: '+'; color: var(--org2); }
 .price-note { font: 400 11px var(--mono); color: var(--mute); text-align: center; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
-.custom { margin-top: 22px; background: var(--s1); border: 1px dashed rgba(255,77,0,0.35); border-radius: 22px; padding: 32px 38px; display: grid; grid-template-columns: 1.1fr 1fr auto; gap: 40px; align-items: center; text-align: left; }
-.custom.match { border: 2px solid var(--green); }
-.custom h3 { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 6px; }
-.custom p { font-size: 15.5px; color: var(--mute); }
-.custom ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; }
-.custom li { font-size: 14.5px; color: var(--ink2); position: relative; padding-left: 20px; }
-.custom li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 800; }
+.pricing-foot { margin-top: 40px; font-size: 16px; color: var(--mute); }
+
+/* Price buttons glow on hover, and the card lights up with them */
+.price .btn { position: relative; transition: background 0.25s, color 0.25s, border-color 0.25s, box-shadow 0.3s, transform 0.25s; }
+.price .btn-ghost:hover, .price .btn-ghost:focus-visible {
+  border-color: var(--org); color: #fff; background: rgba(255,77,0,0.14);
+  box-shadow: 0 0 0 1px var(--org), 0 0 22px rgba(255,77,0,0.55), 0 0 60px rgba(255,77,0,0.28);
+  transform: translateY(-2px);
+}
+.price .btn-primary:hover, .price .btn-primary:focus-visible {
+  box-shadow: 0 0 0 1px var(--org2), 0 0 28px rgba(255,77,0,0.8), 0 0 80px rgba(255,77,0,0.45), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.price:has(.btn:hover) { border-color: rgba(255,77,0,0.7); box-shadow: 0 0 0 1px rgba(255,77,0,0.6), 0 30px 80px rgba(255,77,0,0.22); }
+.price.pop:has(.btn:hover) { box-shadow: 0 0 0 1px var(--org2), 0 40px 100px rgba(255,77,0,0.35); }
 .pricing-offer { margin-top: 30px; }
 
 /* Fit */
@@ -616,7 +628,6 @@ footer { padding: 70px 40px 40px; text-align: center; }
   .tc { display: none; }
 }
 @media (max-width: 1024px) {
-  .custom { grid-template-columns: 1fr; gap: 22px; }
   .about-grid { grid-template-columns: 340px 1fr; gap: 44px; }
   .final { grid-template-columns: 1fr; padding: 52px; }
   .calc { grid-template-columns: 1fr; }
@@ -658,8 +669,6 @@ footer { padding: 70px 40px 40px; text-align: center; }
   .featured.flip .featured-card { order: 0; }
   .price, .fit, .step, .stack-card, .thought { padding: 28px 22px; }
   .price.pop { transform: none; order: -1; }
-  .custom { padding: 26px 22px; }
-  .custom ul { grid-template-columns: 1fr; }
   .about-grid { grid-template-columns: 1fr; }
   .about-photo { max-width: 380px; }
   .faq-a { padding-right: 0; }
@@ -908,7 +917,7 @@ footer { padding: 70px 40px 40px; text-align: center; }
         <p>That's <b id="days">3 full workdays</b> every month you could spend with clients, on sales — or just offline.</p>
         <div class="calc-plan">
           <div>Your best fit<b id="planName">Pro plan</b></div>
-          <span id="planDesc">12 videos / month</span>
+          <span id="planDesc">12 videos × $35 = $420 / month</span>
         </div>
         <a href="#book" class="btn btn-primary btn-block" data-cal data-track="cta_calculator">Get my hours back →</a>
       </div>
@@ -930,7 +939,7 @@ footer { padding: 70px 40px 40px; text-align: center; }
           <tr><td>Your time</td><td><span class="x">✕</span>Hours per video</td><td>Endless back-and-forth</td><td class="me"><span class="v">✓</span>Record, send, done</td></tr>
           <tr><td>Quality</td><td>Depends on your skills</td><td><span class="x">✕</span>Hit or miss</td><td class="me"><span class="v">✓</span>Cinematic and on-brand, every time</td></tr>
           <tr><td>Built for retention</td><td><span class="x">✕</span>Rarely</td><td><span class="x">✕</span>Usually just cuts</td><td class="me"><span class="v">✓</span>Hook, hold, payoff</td></tr>
-          <tr><td>Speed</td><td>Whenever you find time</td><td>Unpredictable</td><td class="me"><span class="v">✓</span>48–72h turnaround</td></tr>
+          <tr><td>Speed</td><td>Whenever you find time</td><td>Unpredictable</td><td class="me"><span class="v">✓</span>24–72h turnaround</td></tr>
           <tr><td>Consistency</td><td><span class="x">✕</span>Missed uploads</td><td>New editor, new style</td><td class="me"><span class="v">✓</span>One editor who knows your brand</td></tr>
         </tbody>
       </table>
@@ -999,23 +1008,25 @@ footer { padding: 70px 40px 40px; text-align: center; }
 <!-- 08 PRICING -->
 <section id="pricing">
   <div class="inner center reveal">
-    <div class="slate"><span class="n">08</span><span>Pricing</span></div>
-    <h2 class="h2">Pick your <em>pace.</em></h2>
-    <p class="lead">Simple monthly plans. Every plan starts with a free call, so you'll know it's the right fit before you pay a thing.</p>
+    <div class="slate"><span class="n">08</span><span>Pricing · Instagram Reels editing</span></div>
+    <h2 class="h2">Reels that hold attention. <em>Delivered on a deadline.</em></h2>
+    <p class="lead">I help entrepreneurs, creators and coaches turn raw footage into high-retention Reels in 24–72 hours. Priced per video, so you only pay for what you post.</p>
     <div class="pricing-grid">
       <div class="price" data-plan="starter">
         <div class="badge badge-match">✓ Your match</div>
         <div class="price-plan">Starter</div>
-        <p class="price-for">Getting consistent with a few strong videos a month.</p>
-        <div class="price-n">$350<span>/month</span></div>
+        <p class="price-for">Getting consistent with a few strong Reels a month.</p>
+        <div class="price-n">$20<span>/ video</span></div>
         <hr>
-        <ul>
-          <li><b>Up to 5</b> short videos / month</li>
-          <li>2 revisions per video</li>
-          <li>Basic color grading &amp; audio sync</li>
-          <li>72-hour turnaround</li>
-          <li>Email &amp; WhatsApp support</li>
-        </ul>
+        <div class="price-body">
+          <ul>
+            <li><b>1 edited Reel</b> per order</li>
+            <li><b>2</b> revisions</li>
+            <li>Basic color grading &amp; audio sync</li>
+            <li><b>72-hour</b> turnaround</li>
+            <li>Email &amp; WhatsApp support</li>
+          </ul>
+        </div>
         <a href="#book" class="btn btn-ghost btn-block" data-cal data-track="plan_starter">Start with Starter</a>
         <p class="price-note">Begins with a free 30-min call</p>
       </div>
@@ -1024,15 +1035,23 @@ footer { padding: 70px 40px 40px; text-align: center; }
         <div class="badge badge-match">✓ Your match</div>
         <div class="price-plan">Pro</div>
         <p class="price-for">Posting several times a week and ready to grow fast.</p>
-        <div class="price-n">$850<span>/month</span></div>
+        <div class="price-n">$35<span>/ video</span></div>
         <hr>
-        <ul>
-          <li><b>Up to 12</b> videos / month</li>
-          <li>5 revisions per video</li>
-          <li>Advanced color grading &amp; audio mix</li>
-          <li><b>48-hour</b> turnaround</li>
-          <li>Video call support</li>
-        </ul>
+        <div class="price-body">
+          <ul>
+            <li><b>Hook-first edit</b> with styled captions</li>
+            <li><b>5</b> revisions</li>
+            <li>Advanced color grading &amp; audio mix</li>
+            <li><b>48-hour</b> turnaround</li>
+            <li>Video call support</li>
+          </ul>
+          <div class="bonus">
+            <div class="bonus-k">Bonus</div>
+            <ul>
+              <li>Notion dashboard to track every video's status</li>
+            </ul>
+          </div>
+        </div>
         <a href="#book" class="btn btn-primary btn-block" data-cal data-track="plan_pro">Start with Pro →</a>
         <p class="price-note">Begins with a free 30-min call</p>
       </div>
@@ -1040,35 +1059,30 @@ footer { padding: 70px 40px 40px; text-align: center; }
         <div class="badge badge-match">✓ Your match</div>
         <div class="price-plan">Premium</div>
         <p class="price-for">A full content engine for creators and brands.</p>
-        <div class="price-n">$1200<span>/month</span></div>
+        <div class="price-n">$60<span>/ video</span></div>
         <hr>
-        <ul>
-          <li><b>Up to 20</b> videos / month</li>
-          <li><b>Unlimited</b> revisions</li>
-          <li>Full content optimization</li>
-          <li>Thumbnail &amp; title strategy</li>
-          <li>Shorts, Reels, long-form, podcasts</li>
-          <li>Multi-platform repurposing</li>
-        </ul>
+        <div class="price-body">
+          <ul>
+            <li><b>Unlimited</b> revisions</li>
+            <li>Full content optimization</li>
+            <li>Thumbnail &amp; title strategy</li>
+            <li>Multi-platform repurposing</li>
+            <li><b>24-hour</b> delivery</li>
+          </ul>
+          <div class="bonus">
+            <div class="bonus-k">Bonuses</div>
+            <ul>
+              <li>Monthly strategy check-in</li>
+              <li>Social content repurposing cheat sheet</li>
+              <li>Notion dashboard to track every video's status</li>
+            </ul>
+          </div>
+        </div>
         <a href="#book" class="btn btn-ghost btn-block" data-cal data-track="plan_premium">Start with Premium</a>
         <p class="price-note">Begins with a free 30-min call</p>
       </div>
     </div>
-    <div class="custom" data-plan="custom">
-      <div>
-        <h3>Need something different?</h3>
-        <p>One-off projects or a custom monthly volume, built around exactly what you need.</p>
-      </div>
-      <ul>
-        <li>10 to 40+ video edits</li>
-        <li>24h / 48h / 72h delivery</li>
-        <li>Titles, thumbnails &amp; retention tips</li>
-        <li>Shorts, Reels, long-form, podcasts</li>
-        <li>One edit = multi-channel assets</li>
-        <li>Fully flexible scope</li>
-      </ul>
-      <a href="#book" class="btn btn-ghost" data-cal data-track="plan_custom">Get a custom quote</a>
-    </div>
+    <p class="pricing-foot">Every plan starts with a free 30-minute call, so you know it's the right fit before you pay a thing.</p>
     <div class="pricing-offer" data-offer-wrap hidden><span class="offer-chip">🎁 <span data-offer></span></span></div>
   </div>
 </section>
@@ -1137,7 +1151,7 @@ footer { padding: 70px 40px 40px; text-align: center; }
       <div class="faq-item"><button class="faq-q" aria-expanded="false">What if I don't like an edit?<span class="faq-plus">+</span></button><div class="faq-a">Every plan includes revisions — 2 per video on Starter, 5 on Pro and unlimited on Premium. Tell me what to change and I'll fix it.</div></div>
       <div class="faq-item"><button class="faq-q" aria-expanded="false">You're in Bangladesh. Will time zones be a problem?<span class="faq-plus">+</span></button><div class="faq-a">Rarely. You send footage whenever it suits you and get finished edits back within the agreed turnaround. Pro clients also get video call support when we need to talk face to face.</div></div>
       <div class="faq-item"><button class="faq-q" aria-expanded="false">Which platforms do you edit for?<span class="faq-plus">+</span></button><div class="faq-a">Instagram Reels, YouTube Shorts and TikTok are my specialty. I also edit long-form YouTube videos and podcast highlight clips.</div></div>
-      <div class="faq-item"><button class="faq-q" aria-expanded="false">Can I hire you for a one-off project?<span class="faq-plus">+</span></button><div class="faq-a">Yes. Ask for a custom quote on a call, or send me a message with the form below.</div></div>
+      <div class="faq-item"><button class="faq-q" aria-expanded="false">Can I hire you for a one-off project?<span class="faq-plus">+</span></button><div class="faq-a">Yes. Every plan is priced per video, so you can order a single Reel. For bigger batches or longer videos, ask for a quote on a call or send me a message with the form below.</div></div>
     </div>
   </div>
 </section>
@@ -1356,11 +1370,11 @@ if (SITE.whatsapp) {
 }
 
 // ---------- Time-back calculator ----------
+// Plans are priced per video; the fit is picked by how often someone posts
 const PLANS = [
-  { key: 'starter', max: 5, name: 'Starter plan', desc: 'Up to 5 videos / month' },
-  { key: 'pro', max: 12, name: 'Pro plan', desc: 'Up to 12 videos / month' },
-  { key: 'premium', max: 20, name: 'Premium plan', desc: 'Up to 20 videos / month' },
-  { key: 'custom', max: Infinity, name: 'Custom plan', desc: 'Built around your volume' },
+  { key: 'starter', maxPerWeek: 1, name: 'Starter plan', price: 20 },
+  { key: 'pro', maxPerWeek: 4, name: 'Pro plan', price: 35 },
+  { key: 'premium', maxPerWeek: Infinity, name: 'Premium plan', price: 60 },
 ];
 const vpw = $('vpw'), hpv = $('hpv');
 let calcTouched = false;
@@ -1370,13 +1384,13 @@ function updateCalc() {
   const perMonth = perWeek * 4;
   const total = Math.round(perMonth * hours);
   const days = Math.round(total / 8 * 2) / 2;
-  const plan = PLANS.find(p => perMonth <= p.max);
+  const plan = PLANS.find(p => perWeek <= p.maxPerWeek);
   $('vOut').textContent = perWeek;
   $('hOut').textContent = hours < 1 ? '30 min' : hours + 'h';
   $('hrs').textContent = total;
   $('days').textContent = total < 8 ? `${total} hours` : (days === 1 ? '1 full workday' : days + ' full workdays');
   $('planName').textContent = plan.name;
-  $('planDesc').textContent = `${perMonth} videos / month · ${plan.desc.toLowerCase()}`;
+  $('planDesc').textContent = `${perMonth} videos × $${plan.price} = $${perMonth * plan.price} / month`;
   $('f-calc').value = `${perWeek}/week, ${hours}h each, ${total}h/month → ${plan.name}`;
   fillTrack(vpw); fillTrack(hpv);
   if (calcTouched) {
